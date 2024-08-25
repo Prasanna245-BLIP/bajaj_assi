@@ -1,94 +1,81 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { useState } from 'react';
+import axios from 'axios';
+import Select from 'react-select';
+import styles from './page.module.css';
 
 export default function Home() {
+  const [inputValue, setInputValue] = useState('');
+  const [responseData, setResponseData] = useState(null);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async () => {
+    try {
+      const data = JSON.parse(inputValue);
+      const result = await axios.post('https://your-backend-url/bfhl', { data });
+      setResponseData(result.data);
+      setError(null);
+    } catch (err) {
+      setError('Invalid JSON or server error');
+    }
+  };
+
+  const handleSelectChange = (selected) => {
+    setSelectedOptions(selected || []);
+  };
+
+  const renderResponse = () => {
+    if (!responseData) return null;
+
+    const selectedKeys = selectedOptions.map(option => option.value);
+    const filteredData = {};
+
+    if (selectedKeys.includes('numbers')) {
+      filteredData.numbers = responseData.numbers;
+    }
+    if (selectedKeys.includes('alphabets')) {
+      filteredData.alphabets = responseData.alphabets;
+    }
+    if (selectedKeys.includes('highest_lowercase_alphabet')) {
+      filteredData.highest_lowercase_alphabet = responseData.highest_lowercase_alphabet;
+    }
+
+    return <pre>{JSON.stringify(filteredData, null, 2)}</pre>;
+  };
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+      <h1 className={styles.title}>ABCD123</h1>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      <div className={styles.container}>
+        <textarea
+          className={styles.textarea}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder='Enter JSON input here'
+          rows="10"
+          cols="50"
         />
-      </div>
+        <button className={styles.button} onClick={handleSubmit}>Submit</button>
+        
+        {error && <p className={styles.error}>{error}</p>}
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        {responseData && (
+          <>
+            <Select
+              isMulti
+              options={[
+                { value: 'alphabets', label: 'Alphabets' },
+                { value: 'numbers', label: 'Numbers' },
+                { value: 'highest_lowercase_alphabet', label: 'Highest Lowercase Alphabet' }
+              ]}
+              onChange={handleSelectChange}
+            />
+            <div className={styles.response}>
+              {renderResponse()}
+            </div>
+          </>
+        )}
       </div>
     </main>
   );
