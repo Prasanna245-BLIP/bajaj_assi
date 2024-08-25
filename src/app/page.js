@@ -1,95 +1,103 @@
+import { useState } from "react";
 import Image from "next/image";
 import styles from "./page.module.css";
 
 export default function Home() {
+  const [jsonInput, setJsonInput] = useState("");
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleInputChange = (e) => {
+    setJsonInput(e.target.value);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const parsedData = JSON.parse(jsonInput);
+      setError("");
+      setShowDropdown(true);
+
+      // Replace with your backend API endpoint
+      const res = await fetch("/api/your-backend-endpoint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsedData),
+      });
+
+      const result = await res.json();
+      setResponse(result);
+    } catch (err) {
+      setError("Invalid JSON format.");
+    }
+  };
+
+  const handleFilterChange = (e) => {
+    const value = Array.from(e.target.selectedOptions, (option) => option.value);
+    setSelectedFilters(value);
+  };
+
+  const getFilteredResponse = () => {
+    if (!response) return null;
+
+    let filteredData = response.data || [];
+
+    if (selectedFilters.includes("Alphabets")) {
+      filteredData = filteredData.filter((item) => /^[a-zA-Z]+$/.test(item));
+    }
+    if (selectedFilters.includes("Numbers")) {
+      filteredData = filteredData.filter((item) => /^[0-9]+$/.test(item));
+    }
+    if (selectedFilters.includes("Highest lowercase alphabet")) {
+      const lowestAlphabet = Math.max(...filteredData.map((item) => item.charCodeAt(0) || -1));
+      filteredData = filteredData.filter((item) => item.charCodeAt(0) === lowestAlphabet);
+    }
+
+    return filteredData;
+  };
+
   return (
     <main className={styles.main}>
+      <title>Your Roll Number</title>
+
       <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+        <textarea
+          value={jsonInput}
+          onChange={handleInputChange}
+          rows={5}
+          placeholder="Enter JSON data here"
+          className={styles.textarea}
         />
+        <button onClick={handleSubmit} className={styles.submitButton}>
+          Submit
+        </button>
+        {error && <p className={styles.error}>{error}</p>}
       </div>
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+      {showDropdown && (
+        <div className={styles.dropdownContainer}>
+          <select multiple onChange={handleFilterChange} className={styles.dropdown}>
+            <option value="Alphabets">Alphabets</option>
+            <option value="Numbers">Numbers</option>
+            <option value="Highest lowercase alphabet">Highest lowercase alphabet</option>
+          </select>
+        </div>
+      )}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div className={styles.responseContainer}>
+        {response && (
+          <div>
+            <h2>Filtered Response:</h2>
+            <ul>
+              {getFilteredResponse().map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </main>
   );
 }
+
