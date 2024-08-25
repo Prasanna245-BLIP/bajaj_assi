@@ -9,39 +9,47 @@ export default function Home() {
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Handle change in text input
   const handleInputChange = (e) => {
     setJsonInput(e.target.value);
   };
 
+  // Handle form submission
   const handleSubmit = async () => {
     try {
       const parsedData = JSON.parse(jsonInput);
       setError("");
       setShowDropdown(true);
 
-      // Replace with your backend API endpoint
+      // Replace with your actual API endpoint
       const res = await fetch("/api/your-backend-endpoint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsedData),
       });
 
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
+
       const result = await res.json();
       setResponse(result);
     } catch (err) {
-      setError("Invalid JSON format.");
+      setError("Invalid JSON format or API error.");
     }
   };
 
+  // Handle filter changes
   const handleFilterChange = (e) => {
     const value = Array.from(e.target.selectedOptions, (option) => option.value);
     setSelectedFilters(value);
   };
 
+  // Filter response data based on selected filters
   const getFilteredResponse = () => {
-    if (!response) return null;
+    if (!response || !response.data) return [];
 
-    let filteredData = response.data || [];
+    let filteredData = response.data;
 
     if (selectedFilters.includes("Alphabets")) {
       filteredData = filteredData.filter((item) => /^[a-zA-Z]+$/.test(item));
@@ -50,8 +58,8 @@ export default function Home() {
       filteredData = filteredData.filter((item) => /^[0-9]+$/.test(item));
     }
     if (selectedFilters.includes("Highest lowercase alphabet")) {
-      const lowestAlphabet = Math.max(...filteredData.map((item) => item.charCodeAt(0) || -1));
-      filteredData = filteredData.filter((item) => item.charCodeAt(0) === lowestAlphabet);
+      const highestAlphabet = Math.max(...filteredData.map((item) => item.charCodeAt(0) || -1));
+      filteredData = filteredData.filter((item) => item.charCodeAt(0) === highestAlphabet);
     }
 
     return filteredData;
@@ -66,7 +74,7 @@ export default function Home() {
           value={jsonInput}
           onChange={handleInputChange}
           rows={5}
-          placeholder="Enter JSON data here"
+          placeholder='Enter JSON data here'
           className={styles.textarea}
         />
         <button onClick={handleSubmit} className={styles.submitButton}>
