@@ -23,9 +23,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       is_success: true,
-      user_id: 'john_doe_17091999',
-      email: 'john@xyz.com',
-      roll_number: 'ABCD123',
+      user_id: 'Ramireddy Lakshmi Prasanna',
+      email: 'prasanna.21bce9890@vitapstudent.ac.in',
+      roll_number: '21bce9890',
+      dob: "13-10-2003",
       numbers,
       alphabets,
       highest_lowercase_alphabet: highestLowercaseAlphabet,
