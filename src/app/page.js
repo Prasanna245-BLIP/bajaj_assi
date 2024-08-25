@@ -1,3 +1,22 @@
+"use client";
+// app/page.tsx
+import React, { useState } from 'react';
+
+export default function HomePage() {
+  const [jsonData, setJsonData] = useState('');
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async () => {
+    setResponse(null);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/bfhl', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ data: JSON.parse(jsonData) }),
       });
 
@@ -20,8 +39,7 @@
         placeholder='Enter JSON data here, e.g., ["M", "1", "334", "4", "B", "Z", "a"]'
         className="w-full p-2 border border-gray-300 rounded-lg mb-4 dark:bg-gray-700 dark:text-white"
         rows={6}
-      ></textarea>
-      <button
+      ></textarea>      <button
         onClick={handleSubmit}
         className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
       >
